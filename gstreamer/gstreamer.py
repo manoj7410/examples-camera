@@ -205,9 +205,9 @@ def detectCoralDevBoard():
 def run_pipeline(user_function,
                  src_size,
                  appsink_size,
+                 trackerName,
                  videosrc='/dev/video1',
-                 videofmt='raw',
-                 trackerName = None):
+                 videofmt='raw'):
     if videofmt == 'h264':
         SRC_CAPS = 'video/x-h264,width={width},height={height},framerate=30/1'
     elif videofmt == 'jpeg':

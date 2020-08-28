@@ -123,7 +123,7 @@ def main():
                         choices=['raw', 'h264', 'jpeg'])
     parser.add_argument('--tracker', help='Name of the Object Tracker To be used.',
                         default=None,
-                        choices=[None, 'mediapipe', 'sort','deepsort'])                    
+                        choices=[None, 'mediapipe','sort','deepsort'])                    
     args = parser.parse_args()
 
     print('Loading {} with {} labels.'.format(args.model, args.labels))
@@ -154,9 +154,10 @@ def main():
     result = gstreamer.run_pipeline(user_callback,
                                     src_size=(640, 480),
                                     appsink_size=inference_size,
+                                    trackerName=args.tracker,
                                     videosrc=args.videosrc,
-                                    videofmt=args.videofmt,
-                                    tracker=args.tracker)
+                                    videofmt=args.videofmt)
+                                    
 
 if __name__ == '__main__':
     main()
