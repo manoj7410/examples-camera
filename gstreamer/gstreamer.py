@@ -15,6 +15,7 @@
 import sys
 import svgwrite
 import threading
+from tracker import ObjectTracker
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -205,7 +206,8 @@ def run_pipeline(user_function,
                  src_size,
                  appsink_size,
                  videosrc='/dev/video1',
-                 videofmt='raw'):
+                 videofmt='raw',
+                 trackerName = None):
     if videofmt == 'h264':
         SRC_CAPS = 'video/x-h264,width={width},height={height},framerate=30/1'
     elif videofmt == 'jpeg':
@@ -224,6 +226,18 @@ def run_pipeline(user_function,
                     ! queue ! decodebin  ! videorate
                     ! videoconvert n-threads=4 ! videoscale n-threads=4
                     ! {src_caps} ! {leaky_q} """ % (videosrc, demux)
+    ''' Check for the object tracker.'''
+    if trackerName != None:
+        if trackerName == 'mediapipe':
+            if detectCoralDevBoard():
+                objectOfTracker = ObjectTracker('mediapipe')
+            else:
+                print("Tracker MediaPipe is only available on the Dev Board. Keeping the tracker as None")
+                trackerName = None
+        else:
+            objectOfTracker = ObjectTracker(trackerName)
+    else:
+        pass
 
     if detectCoralDevBoard():
         scale_caps = None

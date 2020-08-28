@@ -39,6 +39,7 @@ import os
 import re
 import svgwrite
 import time
+from tracker import ObjectTracker
 
 Object = collections.namedtuple('Object', ['id', 'score', 'bbox'])
 
@@ -120,6 +121,9 @@ def main():
     parser.add_argument('--videofmt', help='Input video format.',
                         default='raw',
                         choices=['raw', 'h264', 'jpeg'])
+    parser.add_argument('--tracker', help='Name of the Object Tracker To be used.',
+                        default=None,
+                        choices=[None, 'mediapipe', 'sort','deepsort'])                    
     args = parser.parse_args()
 
     print('Loading {} with {} labels.'.format(args.model, args.labels))
@@ -151,7 +155,8 @@ def main():
                                     src_size=(640, 480),
                                     appsink_size=inference_size,
                                     videosrc=args.videosrc,
-                                    videofmt=args.videofmt)
+                                    videofmt=args.videofmt,
+                                    tracker=args.tracker)
 
 if __name__ == '__main__':
     main()
