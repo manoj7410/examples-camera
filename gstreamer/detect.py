@@ -41,6 +41,7 @@ import svgwrite
 import time
 from tracker import ObjectTracker
 
+
 Object = collections.namedtuple('Object', ['id', 'score', 'bbox'])
 
 def load_labels(path):

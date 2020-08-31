@@ -16,6 +16,8 @@
 
 """
 
+from sort import *
+
 class ObjectTracker(object):
     def __init__(self, trackerObjectName):
         if trackerObjectName == 'mediapipe':
