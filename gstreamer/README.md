@@ -60,9 +60,9 @@ You can change the model and the labels file using flags ```--model``` and ```--
 ```
 python3 detect.py
 ```
-## Install dependency for Sort Tracker
+## (Optional) Install dependency for Sort Tracker
 ```
-pip3 install -r requirements.txt
+pip3 install -r requirements_for_sort_tracker.txt
 ```
 ## Run the detection model with Sort tracker
 ```
