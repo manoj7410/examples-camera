@@ -63,6 +63,9 @@ python3 detect.py
 ## (Optional) Install dependency for Sort Tracker
 ```
 pip3 install -r requirements_for_sort_tracker.txt
+
+See https://github.com/abewley/sort for algorithm details and link to original paper.
+
 ```
 ## Run the detection model with Sort tracker
 ```
