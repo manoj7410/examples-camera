@@ -21,21 +21,21 @@ from sort import *
 class ObjectTracker(object):
     def __init__(self, trackerObjectName):
         if trackerObjectName == 'mediapipe':
-            self._trackerObject = MediaPipe()
+            self.trackerObject = MediaPipe()
         elif trackerObjectName == 'sort':
-            self._trackerObject = SortTracker()
+            self.trackerObject = SortTracker()
         elif trackerObjectName == 'deepsort':
-            self._trackerObject = DeepSortTracker()
+            self.trackerObject = DeepSortTracker()
         else:
             print("Invalid Tracker Name")
-            self._trackerObject = None
+            self.trackerObject = None
 class MediaPipe(ObjectTracker):
     def __init__(self):
         raise NotImplementedError
 
 class SortTracker(ObjectTracker):
     def __init__(self):       
-        raise NotImplementedError
+        self.mot_tracker = Sort()    
 
 class DeepSortTracker(ObjectTracker):
     def __init__(self):       

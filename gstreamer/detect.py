@@ -54,7 +54,7 @@ def shadow_text(dwg, x, y, text, font_size=20):
     dwg.add(dwg.text(text, insert=(x+1, y+1), fill='black', font_size=font_size))
     dwg.add(dwg.text(text, insert=(x, y), fill='white', font_size=font_size))
 
-def generate_svg(src_size, inference_size, inference_box, objs, labels, text_lines):
+def generate_svg(src_size, inference_size, inference_box, objs, labels, text_lines, trdata, trackerFlag):
     dwg = svgwrite.Drawing('', size=src_size)
     src_w, src_h = src_size
     inf_w, inf_h = inference_size
@@ -63,22 +63,52 @@ def generate_svg(src_size, inference_size, inference_box, objs, labels, text_lin
 
     for y, line in enumerate(text_lines, start=1):
         shadow_text(dwg, 10, y*20, line)
-    for obj in objs:
-        x0, y0, x1, y1 = list(obj.bbox)
-        # Relative coordinates.
-        x, y, w, h = x0, y0, x1 - x0, y1 - y0
-        # Absolute coordinates, input tensor space.
-        x, y, w, h = int(x * inf_w), int(y * inf_h), int(w * inf_w), int(h * inf_h)
-        # Subtract boxing offset.
-        x, y = x - box_x, y - box_y
-        # Scale to source coordinate space.
-        x, y, w, h = x * scale_x, y * scale_y, w * scale_x, h * scale_y
-        percent = int(100 * obj.score)
-        label = '{}% {}'.format(percent, labels.get(obj.id, obj.id))
-        shadow_text(dwg, x, y - 5, label)
-        dwg.add(dwg.rect(insert=(x,y), size=(w, h),
-                        fill='none', stroke='red', stroke_width='2'))
+    if trackerFlag is True and trdata.any():    
+        for td in trdata:
+            x0,y0,x1,y1, trackID=td[0].item(),td[1].item(),td[2].item(),td[3].item(), td[4].item()
+            print('track id: {}   {} {} {} {}'.format(td[4],x0,x1,y0,y1))
+            overlap=0
+            for ob in objs:
+                dx0,dy0,dx1,dy1=ob.bbox.xmin.item(),ob.bbox.ymin.item(),ob.bbox.xmax.item(),ob.bbox.ymax.item()
+                area=(min(dx1,x1)-max(dx0,x0))*(min(dy1,y1)-max(dy0,y0))
+                if (area>overlap):
+                    overlap=area
+                    obj=ob
+                    print('    {:6.3f} {:6.3f} {:6.3f} {:6.3f} area={:6.3f} {:8s} {:3d}%   best: {:8s} {:3d}% '
+                    .format(dx0,dy0,dx1,dy1,area,labels.get(ob.id, ob.id),
+                    int(100*ob.score),labels.get(obj.id,obj.id),int(100*obj.score)))
+            
+            # Relative coordinates.
+            x, y, w, h = x0, y0, x1 - x0, y1 - y0
+            # Absolute coordinates, input tensor space.
+            x, y, w, h = int(x * inf_w), int(y * inf_h), int(w * inf_w), int(h * inf_h)
+            # Subtract boxing offset.
+            x, y = x - box_x, y - box_y
+            # Scale to source coordinate space.
+            x, y, w, h = x * scale_x, y * scale_y, w * scale_x, h * scale_y
+            percent = int(100 * obj.score)
+            label = '{}% {} ID:{}'.format(percent, labels.get(obj.id, obj.id), int(trackID))
+            shadow_text(dwg, x, y - 5, label)
+            dwg.add(dwg.rect(insert=(x,y), size=(w, h),
+                            fill='none', stroke='red', stroke_width='2'))
+    else:
+        for obj in objs:
+            x0, y0, x1, y1 = list(obj.bbox)
+            # Relative coordinates.
+            x, y, w, h = x0, y0, x1 - x0, y1 - y0
+            # Absolute coordinates, input tensor space.
+            x, y, w, h = int(x * inf_w), int(y * inf_h), int(w * inf_w), int(h * inf_h)
+            # Subtract boxing offset.
+            x, y = x - box_x, y - box_y
+            # Scale to source coordinate space.
+            x, y, w, h = x * scale_x, y * scale_y, w * scale_x, h * scale_y
+            percent = int(100 * obj.score)
+            label = '{}% {}'.format(percent, labels.get(obj.id, obj.id))
+            shadow_text(dwg, x, y - 5, label)
+            dwg.add(dwg.rect(insert=(x,y), size=(w, h),
+                            fill='none', stroke='red', stroke_width='2'))
     return dwg.tostring()
+
 
 class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
     """Bounding box.
@@ -137,7 +167,7 @@ def main():
     # Average fps over last 30 frames.
     fps_counter  = common.avg_fps_counter(30)
 
-    def user_callback(input_tensor, src_size, inference_box):
+    def user_callback(input_tensor, src_size, inference_box, mot_tracker):
       nonlocal fps_counter
       start_time = time.monotonic()
       common.set_input(interpreter, input_tensor)
@@ -145,12 +175,32 @@ def main():
       # For larger input image sizes, use the edgetpu.classification.engine for better performance
       objs = get_output(interpreter, args.threshold, args.top_k)
       end_time = time.monotonic()
-      text_lines = [
-          'Inference: {:.2f} ms'.format((end_time - start_time) * 1000),
-          'FPS: {} fps'.format(round(next(fps_counter))),
-      ]
-      print(' '.join(text_lines))
-      return generate_svg(src_size, inference_size, inference_box, objs, labels, text_lines)
+      detections= [] #np.array([])
+      print('num objs: ',len(objs))
+      for n in range (0,len(objs)):
+        element=[] # np.array([])
+##        print('object id ',n)
+#        print(objs[n].bbox.xmin,objs[n].bbox.ymin,objs[n].bbox.xmax,objs[n].bbox.ymax,objs[n].score)
+        element.append(objs[n].bbox.xmin)
+        element.append(objs[n].bbox.ymin)
+        element.append(objs[n].bbox.xmax)
+        element.append(objs[n].bbox.ymax)
+        element.append(objs[n].score)   #    print('element= ',element)
+        detections.append(element)    #      print('dets: ',dets)
+      detections=np.array(detections)       #convert to numpy array #      print('npdets: ',dets)
+      trdata = []
+      trackerFlag = False
+      if detections.any():
+          if mot_tracker != None:  
+            trdata=mot_tracker.update(detections)
+            trackerFlag = True
+           
+          text_lines = [
+            'Inference: {:.2f} ms'.format((end_time - start_time) * 1000),
+            'FPS: {} fps'.format(round(next(fps_counter))),]
+          print(' '.join(text_lines))
+      if len(objs) != 0:
+        return generate_svg(src_size, inference_size, inference_box, objs, labels, text_lines, trdata, trackerFlag)
 
     result = gstreamer.run_pipeline(user_callback,
                                     src_size=(640, 480),
