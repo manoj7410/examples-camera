@@ -60,7 +60,14 @@ You can change the model and the labels file using flags ```--model``` and ```--
 ```
 python3 detect.py
 ```
-
+## Install dependency for Sort Tracker
+```
+pip3 install -r requirements.txt
+```
+## Run the detection model with Sort tracker
+```
+python3 detect.py --tracker sort
+```
 Likewise, you can change the model and the labels file using ```--model``` and ```--labels```.
 
 By default, both examples use the attached Coral Camera. If you want to use a USB camera,
