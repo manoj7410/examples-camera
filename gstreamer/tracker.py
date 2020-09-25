@@ -16,7 +16,7 @@
 
 """
 
-from sort import *
+from sort import Sort
 from automl_video_ondevice.object_tracking.mediapipe_object_tracker import MediaPipeObjectTracker
 
 class ObjectTracker(object):
