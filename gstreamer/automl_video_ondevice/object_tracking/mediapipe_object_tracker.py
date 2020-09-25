@@ -16,9 +16,9 @@
 """Provides an implementation of object tracking using TF and TF-TRT."""
 
 import numpy as np
-from automl_video_ondevice.object_tracking.base_object_detection import BaseObjectDetectionInference
 from automl_video_ondevice.types import NormalizedBoundingBox
 from automl_video_ondevice.types import ObjectTrackingAnnotation
+import time
 
 try:
   import platform
@@ -32,7 +32,7 @@ except ImportError:
       'please reach out to repo maintainers for early access. '
       'If this error persists, it may mean your CPU architecture is not yet '
       'supported.')
-
+current_milli_time = lambda: int(round(time.time() * 1000))
 mediapipe_graph = """
 input_stream: "input_frame"
 input_stream: "input_detections"
@@ -208,24 +208,19 @@ node: {
 """
 
 
-class MediaPipeObjectTracker(BaseObjectDetectionInference):
+class MediaPipeObjectTracker():
   """MediaPipe-based tracking."""
 
-  def __init__(self, object_detection_engine, config):
-    del config  # Not used, yet.
+  def __init__(self):
     self._mediapipe_tracker = mediapipe_tracker.MediaPipeTracker(
         mediapipe_graph)
-    self._object_detection_engine = object_detection_engine
-
-  def input_size(self):
-    return self._object_detection_engine.input_size()
-
-  def run(self, timestamp, frame, annotations):
-    np_frame = np.array(frame)
-
-    detection_annotations = []
-    if self._object_detection_engine.run(timestamp, np_frame,
-                                         detection_annotations):
+    
+  def update(self,frame, annotations):
+      np_frame = np.array(frame)
+      # Grabs current millisecond for timestamp.
+      timestamp = current_milli_time()
+      detection_annotations = []
+    
       converted_detections = []
       # Converts to MediaPipe Detection proto.
       for idx, annotation in enumerate(detection_annotations):
@@ -271,5 +266,4 @@ class MediaPipeObjectTracker(BaseObjectDetectionInference):
                 tracked_annotation.location_data.relative_bounding_box.height))
         annotations.append(output_annotation)
       return True
-    else:
-      return False
+    

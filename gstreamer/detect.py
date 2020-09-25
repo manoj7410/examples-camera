@@ -189,6 +189,7 @@ def main():
         detections.append(element)    #      print('dets: ',dets)
       detections=np.array(detections)       #convert to numpy array #      print('npdets: ',dets)
       trdata = []
+     
       trackerFlag = False
       if detections.any():
           if mot_tracker != None:  
