@@ -215,26 +215,25 @@ class MediaPipeObjectTracker():
     self._mediapipe_tracker = mediapipe_tracker.MediaPipeTracker(
         mediapipe_graph)
     
-  def update(self,frame, annotations):
+  def update(self,frame, detections_from_frame, labels):
       np_frame = np.array(frame)
+      annotations = [] 
       # Grabs current millisecond for timestamp.
       timestamp = current_milli_time()
-      detection_annotations = []
-    
       converted_detections = []
       # Converts to MediaPipe Detection proto.
-      for idx, annotation in enumerate(detection_annotations):
+      for idx, detection_box in enumerate(detections_from_frame):
         detection = mediapipe_tracker.MediaPipeDetection()
         detection.timestamp_usec = timestamp
-        detection.label = [annotation.class_name]
-        detection.score = [annotation.confidence_score]
+        detection.label = list(labels.get(detection_box[5]))
+        detection.score = [detection_box[4].item()]
         detection.detection_id = idx
         location_data = mediapipe_tracker.LocationData()
         relative_bounding_box = mediapipe_tracker.RelativeBoundingBox()
-        relative_bounding_box.xmin = annotation.bbox.left
-        relative_bounding_box.ymin = annotation.bbox.top
-        relative_bounding_box.width = annotation.bbox.right - annotation.bbox.left
-        relative_bounding_box.height = annotation.bbox.bottom - annotation.bbox.top
+        relative_bounding_box.xmin = detection_box[0]
+        relative_bounding_box.ymin = detection_box[1]
+        relative_bounding_box.width = detection_box[2] - detection_box[0]
+        relative_bounding_box.height = detection_box[3] - detection_box[1]
         location_data.relative_bounding_box = relative_bounding_box
         detection.location_data = location_data
         converted_detections.append(detection)
@@ -265,5 +264,5 @@ class MediaPipeObjectTracker():
                 .ymin +
                 tracked_annotation.location_data.relative_bounding_box.height))
         annotations.append(output_annotation)
-      return True
+      return annotations
     

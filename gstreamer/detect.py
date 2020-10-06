@@ -186,20 +186,26 @@ def main():
         element.append(objs[n].bbox.xmax)
         element.append(objs[n].bbox.ymax)
         element.append(objs[n].score)   #    print('element= ',element)
+        element.append(objs[n].id)
         detections.append(element)    #      print('dets: ',dets)
-      detections=np.array(detections)       #convert to numpy array #      print('npdets: ',dets)
+      detections_np=np.array(detections)       #convert to numpy array #      print('npdets: ',dets)
       trdata = []
      
       trackerFlag = False
-      if detections.any():
-          if mot_tracker != None:  
-            trdata=mot_tracker.update(detections)
+      if args.tracker == 'sort':
+        if detections_np.any():
+            if mot_tracker != None:  
+              trdata=mot_tracker.update(detections_np)
+              trackerFlag = True      
+      elif args.tracker == 'mediapipe':
+        if detections_np.any():
+          if mot_tracker != None:
+            trdata=mot_tracker.update(input_tensor, detections, labels)
             trackerFlag = True
-           
-          text_lines = [
-            'Inference: {:.2f} ms'.format((end_time - start_time) * 1000),
-            'FPS: {} fps'.format(round(next(fps_counter))),]
-          print(' '.join(text_lines))
+      text_lines = [
+          'Inference: {:.2f} ms'.format((end_time - start_time) * 1000),
+          'FPS: {} fps'.format(round(next(fps_counter))),]
+      print(' '.join(text_lines))
       if len(objs) != 0:
         return generate_svg(src_size, inference_size, inference_box, objs, labels, text_lines, trdata, trackerFlag)
 

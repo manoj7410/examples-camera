@@ -17,7 +17,6 @@
 """
 
 from sort import Sort
-from automl_video_ondevice.object_tracking.mediapipe_object_tracker import MediaPipeObjectTracker
 
 class ObjectTracker(object):
     def __init__(self, trackerObjectName):
@@ -32,6 +31,7 @@ class ObjectTracker(object):
             self.trackerObject = None
 class MediaPipe(ObjectTracker):
     def __init__(self):
+        from automl_video_ondevice.object_tracking.mediapipe_object_tracker import MediaPipeObjectTracker
         self.mot_tracker = MediaPipeObjectTracker()
 
 class SortTracker(ObjectTracker):
