@@ -31,8 +31,9 @@ class ObjectTracker(object):
             self.trackerObject = None
 class MediaPipe(ObjectTracker):
     def __init__(self):
-        from automl_video_ondevice.object_tracking.mediapipe_object_tracker import MediaPipeObjectTracker
-        self.mot_tracker = MediaPipeObjectTracker()
+        raise NotImplementedError
+    #    from automl_video_ondevice.object_tracking.mediapipe_object_tracker import MediaPipeObjectTracker
+    #    self.mot_tracker = MediaPipeObjectTracker()
 
 class SortTracker(ObjectTracker):
     def __init__(self):       
